@@ -1,506 +1,1217 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cheeset's Game Hub</title>
+  <title>Cheeset's Arcade Game Hub</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            outfit: ['Outfit', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            cyber: {
+              bg: '#080c14',
+              card: '#0f172a',
+              border: '#1e293b',
+              accent: '#00f0ff',
+              pink: '#ff007a',
+              purple: '#8b5cf6',
+              gold: '#f59e0b',
+              green: '#10b981'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    :root {
-      --bg: #0d1117;
-      --card-bg: #161b22;
-      --card-border: #30363d;
-      --accent: #58a6ff;
-      --accent-hover: #1f6feb;
-      --text: #c9d1d9;
-      --text-bright: #ffffff;
-      --muted: #8b949e;
-      --heavy-tag: #da3633;
-      --papas-tag: #d29922;
-      --original-tag: #238636;
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080c14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    /* Spring Physics & Elastic Animations */
+    .spring-card {
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                  box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                  border-color 0.3s ease;
+    }
+    .spring-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 16px 32px -8px rgba(0, 240, 255, 0.25);
     }
 
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+    .spring-btn {
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                  box-shadow 0.25s ease, 
+                  background-color 0.2s ease;
+    }
+    .spring-btn:hover {
+      transform: scale(1.05) translateY(-2px);
+    }
+    .spring-btn:active {
+      transform: scale(0.92) translateY(1px);
     }
 
-    header {
-      background: #161b22;
-      border-bottom: 1px solid var(--card-border);
-      padding: 2rem 1.5rem;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      backdrop-filter: blur(10px);
-      background-color: rgba(22, 27, 34, 0.9);
+    /* Pop In Animation */
+    @keyframes springPopIn {
+      0% { transform: scale(0.6) translateY(30px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .pop-in {
+      animation: springPopIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
 
-    header h1 {
-      color: var(--text-bright);
-      font-size: 2.2rem;
-      margin-bottom: 0.5rem;
+    /* Dynamic Cyber Grid & Mesh Backdrop */
+    .bg-cyber-mesh {
+      background-color: #080c14;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(0, 240, 255, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(255, 0, 122, 0.12) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 32px 32px, 32px 32px;
     }
 
-    header p {
-      color: var(--muted);
-      font-size: 0.95rem;
+    /* Glassmorphism */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .controls {
-      max-width: 1200px;
-      margin: 1.5rem auto 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      justify-content: space-between;
-      align-items: center;
+    /* Pulse Glow */
+    @keyframes neonGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(0, 240, 255, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(0, 240, 255, 0.6); }
+    }
+    .neon-pulse {
+      animation: neonGlow 3s infinite ease-in-out;
     }
 
-    .search-box {
-      flex: 1;
-      min-width: 250px;
+    /* Spin Wheel Reel */
+    @keyframes spinPulse {
+      0% { transform: scale(0.98); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(0.98); }
     }
-
-    .search-box input {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      border: 1px solid var(--card-border);
-      background: var(--bg);
-      color: var(--text-bright);
-      font-size: 1rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .search-box input:focus {
-      border-color: var(--accent);
-    }
-
-    .filter-buttons {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .filter-btn {
-      background: var(--bg);
-      border: 1px solid var(--card-border);
-      color: var(--text);
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: all 0.2s;
-    }
-
-    .filter-btn:hover, .filter-btn.active {
-      background: var(--accent-hover);
-      color: white;
-      border-color: var(--accent-hover);
-    }
-
-    main {
-      max-width: 1300px;
-      margin: 2rem auto;
-      padding: 0 1.5rem;
-      flex: 1;
-      width: 100%;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-      border-color: var(--accent);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 0.75rem;
-      gap: 0.5rem;
-    }
-
-    .card-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--text-bright);
-    }
-
-    .badge {
-      font-size: 0.7rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 12px;
-      font-weight: bold;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-
-    .badge-heavy { background: var(--heavy-tag); color: white; }
-    .badge-papas { background: var(--papas-tag); color: black; }
-    .badge-original { background: var(--original-tag); color: white; }
-    .badge-fork { background: var(--card-border); color: var(--text); }
-    .badge-resource { background: #8957e5; color: white; }
-
-    .card-desc {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-bottom: 1.25rem;
-      line-height: 1.4;
-      flex: 1;
-    }
-
-    .card-actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .btn {
-      flex: 1;
-      text-align: center;
-      padding: 0.6rem 0.8rem;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background 0.2s;
-      border: none;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #0d1117;
-    }
-
-    .btn-primary:hover {
-      background: #79c0ff;
-    }
-
-    .btn-secondary {
-      background: transparent;
-      border: 1px solid var(--card-border);
-      color: var(--text);
-    }
-
-    .btn-secondary:hover {
-      background: var(--card-border);
-      color: var(--text-bright);
-    }
-
-    /* Modal Styling */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(5px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .modal-container {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      width: 90%;
-      max-width: 1200px;
-      height: 85vh;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8);
-    }
-
-    .modal-header {
-      padding: 0.75rem 1.25rem;
-      background: #161b22;
-      border-bottom: 1px solid var(--card-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .modal-title {
-      font-size: 1.1rem;
-      color: var(--text-bright);
-      font-weight: 600;
-    }
-
-    .modal-controls {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .modal-btn {
-      background: var(--bg);
-      border: 1px solid var(--card-border);
-      color: var(--text);
-      padding: 0.4rem 0.8rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.8rem;
-    }
-
-    .modal-btn:hover {
-      background: var(--card-border);
-      color: white;
-    }
-
-    .modal-body {
-      flex: 1;
-      position: relative;
-      background: #000;
-    }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    footer {
-      text-align: center;
-      padding: 2rem;
-      color: var(--muted);
-      border-top: 1px solid var(--card-border);
-      font-size: 0.85rem;
+    .spinning-active {
+      animation: spinPulse 0.15s infinite;
     }
   </style>
 </head>
-<body>
 
-  <header>
-    <h1>🎮 Cheeset's Game Hub</h1>
-    <p>All original games, forks, and WebGL ports in one place!</p>
-    
-    <div class="controls">
-      <div class="search-box">
-        <input type="text" id="search" placeholder="🔍 Search games or notes..." oninput="filterGames()" />
+<body class="bg-cyber-mesh text-slate-200 font-sans min-h-screen flex flex-col selection:bg-cyan-500 selection:text-black">
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 py-3 sm:px-8 transition-all">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      
+      <!-- Logo & Title -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="resetFilters()">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 via-purple-500 to-pink-500 p-0.5 spring-btn shadow-lg shadow-cyan-500/20">
+          <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+            <i class="fa-solid font-outfit text-cyan-400 text-xl fa-gamepad"></i>
+          </div>
+        </div>
+        <div>
+          <h1 class="font-outfit font-black text-2xl tracking-tight text-white flex items-center gap-2">
+            CHEESET'S <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500">ARCADE</span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">v2.0</span>
+          </h1>
+          <p class="text-xs text-slate-400 flex items-center gap-2">
+            <span>60+ Web Games & Ports</span>
+            <span class="inline-block w-1 h-1 rounded-full bg-slate-600"></span>
+            <span id="liveSyncStatus" class="text-emerald-400 flex items-center gap-1">
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Live Firestore Ready
+            </span>
+          </p>
+        </div>
       </div>
-      <div class="filter-buttons">
-        <button class="filter-btn active" onclick="setCategory('All', this)">All</button>
-        <button class="filter-btn" onclick="setCategory('Original Projects', this)">Originals</button>
-        <button class="filter-btn" onclick="setCategory('Forks & Web Games', this)">Forks</button>
-        <button class="filter-btn" onclick="setCategory('Papa\'s Series', this)">Papa's</button>
-        <button class="filter-btn" onclick="setCategory('Heavy Games', this)">Heavy</button>
-        <button class="filter-btn" onclick="setCategory('Resources', this)">Resources</button>
+
+      <!-- Action & Utility Controls -->
+      <div class="flex items-center flex-wrap justify-center gap-2 sm:gap-3">
+        <!-- Sound FX Toggle -->
+        <button id="soundToggleBtn" onclick="toggleAudio()" class="spring-btn glass-panel hover:bg-slate-800 text-slate-300 hover:text-white px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-slate-700/60" title="Toggle Sound FX">
+          <i id="soundIcon" class="fa-solid fa-volume-high text-cyan-400"></i>
+          <span class="hidden sm:inline">SFX</span>
+        </button>
+
+        <!-- Random Game Picker -->
+        <button onclick="openSpinModal()" class="spring-btn bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-purple-500/20">
+          <i class="fa-solid fa-dice text-amber-300 text-base"></i>
+          <span>Random Game</span>
+        </button>
+
+        <!-- Add Game Button -->
+        <button onclick="openAddModal()" class="spring-btn bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-4 py-2 rounded-xl text-sm font-extrabold flex items-center gap-2 shadow-lg shadow-cyan-500/25">
+          <i class="fa-solid fa-plus text-base"></i>
+          <span>Add Game</span>
+        </button>
+
+        <!-- Export JSON / Code Backup Helper -->
+        <button onclick="openExportModal()" class="spring-btn glass-panel hover:bg-slate-800 text-slate-300 hover:text-cyan-400 px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-slate-700/60" title="Export Code for GitHub">
+          <i class="fa-solid fa-code text-purple-400"></i>
+          <span class="hidden md:inline">Export Code</span>
+        </button>
       </div>
     </div>
   </header>
 
-  <main>
-    <div class="grid" id="gameGrid"></div>
-  </main>
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-8 py-6 flex-1 w-full flex flex-col gap-6">
 
-  <footer>
-    <p>Hosted with GitHub Pages • Created by Cheeset</p>
-  </footer>
+    <!-- Hero Banner Stats & Search Bar -->
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800/80 bg-gradient-to-r from-slate-900/90 via-slate-900/50 to-slate-900/90 shadow-2xl relative overflow-hidden">
+      <!-- Glow background circles -->
+      <div class="absolute -top-12 -left-12 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-  <!-- Embedded Game Modal Player -->
-  <div class="modal-overlay" id="playerModal">
-    <div class="modal-container">
-      <div class="modal-header">
-        <span class="modal-title" id="modalGameTitle">Playing Game</span>
-        <div class="modal-controls">
-          <button class="modal-btn" onclick="toggleFullscreen()">Fullscreen ⛶</button>
-          <button class="modal-btn" onclick="reloadIframe()">Reload 🔄</button>
-          <a id="modalExternalLink" class="modal-btn" target="_blank" href="#">New Tab ↗</a>
-          <button class="modal-btn" style="background:#da3633; color:white;" onclick="closeGame()">Close ✖</button>
+      <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        
+        <!-- Search Input -->
+        <div class="w-full md:w-1/2 relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
+          <input 
+            type="text" 
+            id="searchInput" 
+            oninput="handleSearch()"
+            placeholder="Search games, categories, or keywords..." 
+            class="w-full bg-slate-950/80 border border-slate-700/80 focus:border-cyan-400 text-white rounded-2xl pl-12 pr-10 py-3.5 text-sm outline-none transition-all duration-300 focus:ring-2 focus:ring-cyan-400/20 shadow-inner"
+          />
+          <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white spring-btn">
+            <i class="fa-solid fa-circle-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Quick Counters & View Mode Toggle -->
+        <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+          <div class="flex items-center gap-3 text-xs sm:text-sm font-semibold text-slate-400">
+            <div class="px-3 py-1.5 rounded-xl bg-slate-950/60 border border-slate-800">
+              Total: <span id="totalGameCount" class="text-cyan-400 font-bold">0</span>
+            </div>
+            <div class="px-3 py-1.5 rounded-xl bg-slate-950/60 border border-slate-800">
+              Favs: <span id="favGameCount" class="text-pink-400 font-bold">0</span>
+            </div>
+          </div>
+
+          <!-- Grid / List Switcher -->
+          <div class="flex items-center p-1 bg-slate-950/80 border border-slate-800 rounded-xl">
+            <button id="viewGridBtn" onclick="setViewMode('grid')" class="spring-btn px-3 py-1.5 rounded-lg text-xs font-bold text-cyan-400 bg-slate-800 shadow-sm flex items-center gap-1.5">
+              <i class="fa-solid fa-border-all"></i> Grid
+            </button>
+            <button id="viewListBtn" onclick="setViewMode('list')" class="spring-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-list-ul"></i> List
+            </button>
+          </div>
         </div>
       </div>
-      <div class="modal-body">
-        <iframe id="gameIframe" src="" allowfullscreen></iframe>
+
+      <!-- Filter Category Pills -->
+      <div class="mt-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none" id="categoryPillContainer">
+        <!-- Generated Dynamically -->
+      </div>
+    </div>
+
+    <!-- Game List / Grid Display Section -->
+    <div id="gameDisplayContainer" class="w-full">
+      <!-- Grid View Container -->
+      <div id="gameGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+      
+      <!-- List View Container (Hidden by default) -->
+      <div id="gameList" class="hidden flex flex-col gap-3"></div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden glass-panel rounded-3xl p-12 text-center border border-slate-800 my-8">
+        <div class="w-16 h-16 rounded-full bg-slate-800/80 flex items-center justify-center mx-auto mb-4 text-cyan-400 text-2xl">
+          <i class="fa-solid fa-ghost"></i>
+        </div>
+        <h3 class="font-outfit text-xl font-bold text-white mb-2">No Games Found</h3>
+        <p class="text-slate-400 text-sm max-w-md mx-auto mb-6">Try adjusting your search query or switching categories to find what you're looking for!</p>
+        <button onclick="resetFilters()" class="spring-btn bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-sm shadow-lg shadow-cyan-500/20">
+          Reset All Filters
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL 1: Interactive Game Player Modal -->
+  <div id="playerModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-2 sm:p-6 transition-all">
+    <div id="playerContainer" class="modal-card glass-panel border border-slate-700/80 w-full max-w-6xl h-[92vh] rounded-2xl sm:rounded-3xl flex flex-col overflow-hidden shadow-2xl pop-in">
+      
+      <!-- Modal Header Bar -->
+      <div class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <span id="playerEmoji" class="text-2xl">🎮</span>
+          <div class="min-w-0">
+            <h3 id="playerTitle" class="font-outfit font-extrabold text-white text-base sm:text-lg truncate">Game Title</h3>
+            <span id="playerBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">Original</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <!-- Theatre Mode Toggle -->
+          <button onclick="toggleTheatreMode()" class="spring-btn glass-panel hover:bg-slate-800 text-slate-300 p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-slate-700" title="Toggle Theatre Mode">
+            <i id="theatreIcon" class="fa-solid fa-expand text-purple-400"></i>
+            <span class="hidden sm:inline">Theatre</span>
+          </button>
+
+          <!-- Refresh Frame -->
+          <button onclick="reloadGameFrame()" class="spring-btn glass-panel hover:bg-slate-800 text-slate-300 p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-slate-700" title="Reload Frame">
+            <i class="fa-solid fa-rotate-right text-cyan-400"></i>
+            <span class="hidden sm:inline">Reload</span>
+          </button>
+
+          <!-- Fullscreen -->
+          <button onclick="requestIframeFullscreen()" class="spring-btn glass-panel hover:bg-slate-800 text-slate-300 p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-slate-700" title="Fullscreen">
+            <i class="fa-solid fa-maximize text-emerald-400"></i>
+            <span class="hidden sm:inline">Fullscreen</span>
+          </button>
+
+          <!-- Direct Link -->
+          <a id="playerExternalLink" href="#" target="_blank" class="spring-btn glass-panel hover:bg-slate-800 text-slate-300 p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-slate-700" title="Open in New Tab">
+            <i class="fa-solid fa-up-right-from-square text-amber-400"></i>
+            <span class="hidden sm:inline">New Tab</span>
+          </a>
+
+          <!-- Close Modal -->
+          <button onclick="closePlayerModal()" class="spring-btn bg-pink-600/80 hover:bg-pink-500 text-white p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 ml-1">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Iframe Container -->
+      <div class="relative flex-1 bg-black overflow-hidden flex items-center justify-center">
+        <!-- Spinner Placeholder -->
+        <div id="iframeLoader" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 text-cyan-400 gap-3">
+          <div class="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin"></div>
+          <span class="text-xs font-bold tracking-wider text-slate-400 uppercase">Loading Arcade Experience...</span>
+        </div>
+        <iframe id="gameIframe" class="w-full h-full border-none relative z-10" allow="autoplay; keyboard; fullscreen; gamepad" allowfullscreen></iframe>
       </div>
     </div>
   </div>
 
-  <script>
-    const games = [
-      { "title": "Dig Deep", "url": "https://cheeset-idk.github.io/Dig-deep-inf-recourses-/", "desc": "", "category": "Original Projects", "heavy": false },
-      { "title": "Fish.OS", "url": "https://cheeset-idk.github.io/Fish.OS-V0.01/", "desc": "Lowkey sucks, not fixing this", "category": "Original Projects", "heavy": false },
-      { "title": "Cheeset's Marker RNG Odyssey", "url": "https://cheeset-idk.github.io/Cheesets-Marker-RNG-Odyssey/", "desc": "50k markers!", "category": "Original Projects", "heavy": false },
-      { "title": "EUT WEB", "url": "https://cheeset-idk.github.io/EUT-major-update-/", "desc": "Update: it's just difficult now", "category": "Original Projects", "heavy": false },
-      { "title": "Steal A Cat!", "url": "https://cheeset-idk.github.io/Steal-a-cat-/", "desc": "Earns offline!", "category": "Original Projects", "heavy": false },
-      { "title": "2048+", "url": "https://cheeset-idk.github.io/2048-/", "desc": "Glitched, unsure how to fix", "category": "Original Projects", "heavy": false },
-      { "title": "Dino Run+", "url": "https://cheeset-idk.github.io/Dino-Run-/", "desc": "", "category": "Original Projects", "heavy": false },
-      { "title": "Cheeset's Untitled Shooter", "url": "https://cheeset-idk.github.io/Cheeset-s-untitled-shooter/", "desc": "", "category": "Original Projects", "heavy": false },
-      { "title": "Cheeset's Jelly Pinball", "url": "https://cheeset-idk.github.io/Cheeset-s-Jelly-Pinball-/", "desc": "", "category": "Original Projects", "heavy": false },
-      { "title": "Case Opening Simulator", "url": "https://cheeset-idk.github.io/Case-Opening-Simulator/", "desc": "", "category": "Original Projects", "heavy": false },
-      { "title": "Bit Plane", "url": "https://cheeset-idk.github.io/Bit-plane/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Minesweeper", "url": "https://cheeset-idk.github.io/Minesweeper-html/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Paper.io 2", "url": "https://cheeset-idk.github.io/Paper.io-2/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Stack", "url": "https://cheeset-idk.github.io/Stack/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Territorial.io", "url": "https://cheeset-idk.github.io/territorial.io/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "FNAF 1", "url": "https://cheeset-idk.github.io/FNAF-1/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Happy Wheels", "url": "https://cheeset-idk.github.io/Happy-Wheels/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Hole.io", "url": "https://cheeset-idk.github.io/Hole.io/", "desc": "Very sucky ripoff", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Geometry Dash (Scratch)", "url": "https://cheeset-idk.github.io/geometry-dash/", "desc": "Scratch version, less laggy", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Cookie Clicker", "url": "https://cheeset-idk.github.io/Cookie-clicker/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Basket Random", "url": "https://cheeset-idk.github.io/Basket-random/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Angry Birds", "url": "https://cheeset-idk.github.io/Angry-birds/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Volley Random", "url": "https://cheeset-idk.github.io/volley-random/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Slope", "url": "https://cheeset-idk.github.io/Slope/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Unofficial Melon Playground", "url": "https://cheeset-idk.github.io/Melon-playground/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Plants vs. Zombies", "url": "https://cheeset-idk.github.io/PVZ/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Snowball.io", "url": "https://cheeset-idk.github.io/Snowball.io/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "FNAF 4", "url": "https://cheeset-idk.github.io/FNAF-4/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "FNAF 2", "url": "https://cheeset-idk.github.io/FNAF-2/", "desc": "Unsure if working (loading issues)", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Boxing Random", "url": "https://cheeset-idk.github.io/Boxing-random/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Soccer Random", "url": "https://cheeset-idk.github.io/Soccer-random/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Drive Games Collection", "url": "https://drive.google.com/drive/folders/1QXbjGWMvNc79cps6N5EI9OL1UpLs6_mD?usp=drive_link", "desc": "Extra game files on Google Drive", "category": "Resources", "heavy": false },
-      { "title": "Papa's Pancakeria", "url": "https://cheeset-idk.github.io/papas-pancakeria/", "desc": "", "category": "Papa's Series", "heavy": false },
-      { "title": "Papa's Hotdoggeria", "url": "https://cheeset-idk.github.io/papas-hotdoggeria/", "desc": "", "category": "Papa's Series", "heavy": false },
-      { "title": "Papa's Freezeria", "url": "https://cheeset-idk.github.io/papas-freezeria/", "desc": "", "category": "Papa's Series", "heavy": false },
-      { "title": "Papa's Burgeria", "url": "https://cheeset-idk.github.io/papas-burgeria/", "desc": "", "category": "Papa's Series", "heavy": false },
-      { "title": "Papa's Bakeria", "url": "https://cheeset-idk.github.io/papas-bakeria/", "desc": "", "category": "Papa's Series", "heavy": false },
-      { "title": "Papa's Cheeseria", "url": "https://cheeset-idk.github.io/papas-cheeseria/", "desc": "", "category": "Papa's Series", "heavy": false },
-      { "title": "Papa's Cupcakeria", "url": "https://cheeset-idk.github.io/papas-cupakeria/", "desc": "", "category": "Papa's Series", "heavy": false },
-      { "title": "Monkey Mart", "url": "https://cheeset-idk.github.io/monkey-mart/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Level Devil", "url": "https://cheeset-idk.github.io/level-devil/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Minecraft 1.8.8", "url": "https://cheeset-idk.github.io/minecraft-1.8.8/", "desc": "A little old version", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Backrooms", "url": "https://cheeset-idk.github.io/backrooms/", "desc": "Click screen to lock mouse pointer", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Awesome Tanks 1", "url": "https://cheeset-idk.github.io/awesome-tanks-1/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "Awesome Tanks 2", "url": "https://cheeset-idk.github.io/awesome-tanks-2/", "desc": "", "category": "Forks & Web Games", "heavy": false },
-      { "title": "To the Core", "url": "https://slqntdevss.github.io/TTCPort/", "desc": "Ported game, high memory usage", "category": "Heavy Games", "heavy": true },
-      { "title": "People Playground", "url": "https://cheeset-idk.github.io/people-playground-/", "desc": "No jsdelivr CDN", "category": "Heavy Games", "heavy": true },
-      { "title": "Mindustry", "url": "https://cheeset-idk.github.io/Mindustry/", "desc": "Takes a few minutes to load", "category": "Heavy Games", "heavy": true },
-      { "title": "FNF (Friday Night Funkin')", "url": "https://cheeset-idk.github.io/FNF-HTML-Port/", "desc": "Reload if stuck loading", "category": "Heavy Games", "heavy": true },
-      { "title": "Idle Mining Empire", "url": "https://ugs-plus.github.io/idle-mining-empire", "desc": "", "category": "Heavy Games", "heavy": true },
-      { "title": "Geometry Dash (Full Web)", "url": "https://cheeset-idk.github.io/geometry-dash-web-full/", "desc": "VERY old version", "category": "Heavy Games", "heavy": true },
-      { "title": "Celeste", "url": "https://theveryoilydill.github.io/celeste/", "desc": "Web port", "category": "Heavy Games", "heavy": true },
-      { "title": "Terraria", "url": "https://cheeset-idk.github.io/terraria-/", "desc": "Currently not working on Chromebooks", "category": "Heavy Games", "heavy": true },
-      { "title": "Endoparasitic", "url": "https://skibidi-math.github.io/endoparasitic/", "desc": "", "category": "Heavy Games", "heavy": true },
-      { "title": "Shapez.io (ModZ)", "url": "https://law-dawg360.github.io/Shapez/shapez/modZ/", "desc": "Huge game, heavy loading", "category": "Heavy Games", "heavy": true },
-      { "title": "Kittens Game", "url": "https://cheeset-idk.github.io/kittens-tycoon/", "desc": "Huge incremental game", "category": "Heavy Games", "heavy": true },
-      { "title": "Stardew Valley (WASM)", "url": "https://cheeset-idk.github.io/stardew-wasm/", "desc": "Unsure if working", "category": "Heavy Games", "heavy": true },
-      { "title": "Evolve", "url": "https://pmotschmann.github.io/Evolve/", "desc": "Similar to Kittens Game, clicker based", "category": "Heavy Games", "heavy": true },
-      { "title": "OpenTTD", "url": "https://pelya.github.io/openttd-touch-webapp", "desc": "USE TUTORIAL! Very complex game", "category": "Heavy Games", "heavy": true },
-      { "title": "Super Mario Bros Remastered", "url": "https://cheeset-idk.github.io/SMB-Remastered-1.1.0-Webport-T4actica1-/", "desc": "Requires rom.nes file from repo. Controls: Z=Action, X=Back, Arrows=Move", "category": "Heavy Games", "heavy": true },
-      { "title": "Crazy Cattle 3D", "url": "https://kkorenn.github.io/cattle3d/", "desc": "3D Game", "category": "Heavy Games", "heavy": true },
-      { "title": "Super Mario 64", "url": "https://vinmannie.github.io/Mario64webgl/", "desc": "WebGL 3D Port", "category": "Heavy Games", "heavy": true }
+  <!-- MODAL 2: 🎲 Random Game Roulette Spinner Modal -->
+  <div id="spinModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-panel border border-purple-500/30 w-full max-w-lg rounded-3xl p-6 sm:p-8 flex flex-col items-center text-center shadow-2xl pop-in relative overflow-hidden">
+      <!-- Glow background -->
+      <div class="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-pink-500/10 pointer-events-none"></div>
+
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-500 to-pink-500 p-0.5 shadow-lg shadow-purple-500/30 mb-4">
+        <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+          <i class="fa-solid fa-dice-d20 text-3xl text-pink-400"></i>
+        </div>
+      </div>
+
+      <h3 class="font-outfit font-black text-2xl text-white mb-1">ARCADE ROULETTE</h3>
+      <p class="text-xs text-slate-400 mb-6">Can't decide what to play? Let the wheel pick!</p>
+
+      <!-- Animated Reel Display Box -->
+      <div id="reelBox" class="w-full bg-slate-950/90 border-2 border-purple-500/40 rounded-2xl p-6 mb-6 flex flex-col items-center justify-center min-h-[140px] shadow-inner relative">
+        <span id="spinEmoji" class="text-4xl mb-2">🎲</span>
+        <h4 id="spinTitle" class="font-outfit font-extrabold text-xl text-cyan-300">Ready to Spin?</h4>
+        <span id="spinCategory" class="text-xs text-slate-400 mt-1">Press the button below</span>
+      </div>
+
+      <div class="flex items-center gap-3 w-full">
+        <button id="spinBtn" onclick="startRouletteSpin()" class="spring-btn flex-1 bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-extrabold py-3.5 px-6 rounded-2xl text-sm shadow-xl shadow-purple-500/25 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rotate text-base"></i>
+          <span>SPIN THE WHEEL!</span>
+        </button>
+        <button id="playSpunBtn" onclick="launchSpunGame()" class="hidden spring-btn bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-3.5 px-6 rounded-2xl text-sm shadow-xl shadow-emerald-500/25 items-center justify-center gap-2">
+          <i class="fa-solid fa-gamepad text-base"></i>
+          <span>PLAY NOW!</span>
+        </button>
+      </div>
+
+      <button onclick="closeSpinModal()" class="mt-4 text-xs font-semibold text-slate-400 hover:text-white spring-btn">
+        Close Roulette
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 3: ➕ Add Game Community Form Modal -->
+  <div id="addModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-panel border border-cyan-500/30 w-full max-w-xl rounded-3xl p-6 sm:p-8 flex flex-col shadow-2xl pop-in relative">
+      
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 text-lg">
+            <i class="fa-solid fa-plus-circle"></i>
+          </div>
+          <div>
+            <h3 class="font-outfit font-black text-xl text-white">Add New Web Game</h3>
+            <p class="text-xs text-slate-400">Syncs live to Firebase for all visitors!</p>
+          </div>
+        </div>
+        <button onclick="closeAddModal()" class="text-slate-400 hover:text-white spring-btn">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="addGameForm" onsubmit="handleAddGameSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Game Title *</label>
+          <input type="text" id="addTitle" required placeholder="e.g., Cyber Racer 3D" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-cyan-400 outline-none" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Game URL *</label>
+            <input type="url" id="addUrl" required placeholder="https://username.github.io/game" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-cyan-400 outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Category</label>
+            <select id="addCategory" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-cyan-400 outline-none">
+              <option value="Original Projects">Original Projects</option>
+              <option value="Forks & Web Games">Forks & Web Games</option>
+              <option value="Papa's Series">Papa's Series</option>
+              <option value="Heavy Games">Heavy Games</option>
+              <option value="Resources">Resources</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Emoji Icon</label>
+            <input type="text" id="addEmoji" placeholder="🎮 (or leave blank)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-cyan-400 outline-none" />
+          </div>
+
+          <div class="flex items-center gap-3 pt-6">
+            <input type="checkbox" id="addHeavy" class="w-4 h-4 rounded border-slate-800 text-cyan-500 focus:ring-cyan-400 bg-slate-950" />
+            <label for="addHeavy" class="text-xs font-bold text-slate-300 cursor-pointer">Heavy Load Game (Large files)</label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Description / Notes</label>
+          <textarea id="addDesc" rows="2" placeholder="Controls, glitch warnings, or tips..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white focus:border-cyan-400 outline-none resize-none"></textarea>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-3">
+          <button type="button" onclick="closeAddModal()" class="spring-btn px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white bg-slate-900">
+            Cancel
+          </button>
+          <button type="submit" class="spring-btn bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold px-6 py-2.5 rounded-xl text-xs shadow-lg shadow-cyan-500/20">
+            Submit Game Live
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: 📋 Code Export / Backup Helper -->
+  <div id="exportModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-panel border border-slate-700/80 w-full max-w-2xl rounded-3xl p-6 sm:p-8 flex flex-col shadow-2xl pop-in">
+      
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 text-lg">
+            <i class="fa-solid fa-code"></i>
+          </div>
+          <div>
+            <h3 class="font-outfit font-black text-xl text-white">GitHub Pages Code Helper</h3>
+            <p class="text-xs text-slate-400">Copy the JSON or array code to commit added games directly to your GitHub repo!</p>
+          </div>
+        </div>
+        <button onclick="closeExportModal()" class="text-slate-400 hover:text-white spring-btn">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="mb-4">
+        <textarea id="exportCodeArea" readonly rows="10" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs font-mono text-cyan-300 focus:outline-none select-all"></textarea>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <span id="exportCopyMsg" class="text-xs text-emerald-400 font-bold opacity-0 transition-opacity">Copied to clipboard!</span>
+        <div class="flex gap-2">
+          <button onclick="copyExportCode()" class="spring-btn bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-5 py-2 rounded-xl text-xs shadow-lg shadow-cyan-500/20 flex items-center gap-2">
+            <i class="fa-solid fa-copy"></i> Copy JSON Array
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="glass-panel border-t border-slate-800/80 py-6 px-4 text-center text-xs text-slate-500 mt-auto">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p>🎮 Cheeset Arcade Game Hub • Hosted on GitHub Pages</p>
+      <p class="text-slate-600">Built with Tailwind CSS, Web Audio API & Firebase Firestore</p>
+    </div>
+  </footer>
+
+  <!-- Firebase JavaScript SDK Modular Imports -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Complete Database of All 62 Default Games
+    const DEFAULT_GAMES = [
+      { id: "1", title: "Dig Deep", url: "https://cheeset-idk.github.io/Dig-deep-inf-recourses-/", category: "Original Projects", desc: "Dig deep into infinite resources!", emoji: "⛏️", heavy: false },
+      { id: "2", title: "Fish.OS", url: "https://cheeset-idk.github.io/Fish.OS-V0.01/", category: "Original Projects", desc: "Lowkey sucks mb, also not fixing this", emoji: "🐟", heavy: false },
+      { id: "3", title: "Cheeset's Marker RNG Odyssey", url: "https://cheeset-idk.github.io/Cheesets-Marker-RNG-Odyssey/", category: "Original Projects", desc: "50k markers to collect!", emoji: "🖍️", heavy: false },
+      { id: "4", title: "EUT WEB", url: "https://cheeset-idk.github.io/EUT-major-update-/", category: "Original Projects", desc: "Update: it's just difficult now", emoji: "⚡", heavy: false },
+      { id: "5", title: "Steal A Cat!", url: "https://cheeset-idk.github.io/Steal-a-cat-/", category: "Original Projects", desc: "Earns offline progress!", emoji: "🐱", heavy: false },
+      { id: "6", title: "2048+", url: "https://cheeset-idk.github.io/2048-/", category: "Original Projects", desc: "Enhanced 2048 puzzle experience", emoji: "🔢", heavy: false },
+      { id: "7", title: "Dino Run+", url: "https://cheeset-idk.github.io/Dino-Run-/", category: "Original Projects", desc: "Classic endless runner plus extras", emoji: "🦖", heavy: false },
+      { id: "8", title: "Cheeset's Untitled Shooter", url: "https://cheeset-idk.github.io/Cheeset-s-untitled-shooter/", category: "Original Projects", desc: "Fast-paced top-down shooter action", emoji: "🎯", heavy: false },
+      { id: "9", title: "Cheeset's Jelly Pinball", url: "https://cheeset-idk.github.io/Cheeset-s-Jelly-Pinball-/", category: "Original Projects", desc: "Squishy bouncy pinball action", emoji: "🔮", heavy: false },
+      { id: "10", title: "Case Opening Simulator", url: "https://cheeset-idk.github.io/Case-Opening-Simulator/", category: "Original Projects", desc: "Test your luck opening cases", emoji: "📦", heavy: false },
+      
+      { id: "11", title: "Bit Plane", url: "https://cheeset-idk.github.io/Bit-plane/", category: "Forks & Web Games", desc: "Fly planes through pixel airspace", emoji: "✈️", heavy: false },
+      { id: "12", title: "Minesweeper", url: "https://cheeset-idk.github.io/Minesweeper-html/", category: "Forks & Web Games", desc: "Classic grid puzzle game", emoji: "💣", heavy: false },
+      { id: "13", title: "Paper.io 2", url: "https://cheeset-idk.github.io/Paper.io-2/", category: "Forks & Web Games", desc: "Conquer territory block by block", emoji: "📄", heavy: false },
+      { id: "14", title: "Stack", url: "https://cheeset-idk.github.io/Stack/", category: "Forks & Web Games", desc: "Stack blocks as high as possible", emoji: "🥞", heavy: false },
+      { id: "15", title: "Territorial.io", url: "https://cheeset-idk.github.io/territorial.io/", category: "Forks & Web Games", desc: "Strategic map expansion game", emoji: "🗺️", heavy: false },
+      { id: "16", title: "FNAF 1", url: "https://cheeset-idk.github.io/FNAF-1/", category: "Forks & Web Games", desc: "Survive five nights at Freddy's", emoji: "🐻", heavy: false },
+      { id: "17", title: "Happy Wheels", url: "https://cheeset-idk.github.io/Happy-Wheels/", category: "Forks & Web Games", desc: "Ragdoll physics obstacle course", emoji: "♿", heavy: false },
+      { id: "18", title: "Hole.io", url: "https://cheeset-idk.github.io/Hole.io/", category: "Forks & Web Games", desc: "Consume everything in city", emoji: "🕳️", heavy: false },
+      { id: "19", title: "Geometry Dash (Scratch)", url: "https://cheeset-idk.github.io/geometry-dash/", category: "Forks & Web Games", desc: "Scratch version, less laggy!", emoji: "📐", heavy: false },
+      { id: "20", title: "Cookie Clicker", url: "https://cheeset-idk.github.io/Cookie-clicker/", category: "Forks & Web Games", desc: "Bake billions of cookies", emoji: "🍪", heavy: false },
+      { id: "21", title: "Basket Random", url: "https://cheeset-idk.github.io/Basket-random/", category: "Forks & Web Games", desc: "Wacky 2-player physics basketball", emoji: "🏀", heavy: false },
+      { id: "22", title: "Angry Birds", url: "https://cheeset-idk.github.io/Angry-birds/", category: "Forks & Web Games", desc: "Classic bird-slingshot destruction", emoji: "🐦", heavy: false },
+      { id: "23", title: "Volley Random", "url": "https://cheeset-idk.github.io/volley-random/", category: "Forks & Web Games", desc: "Physics volleyball madness", emoji: "🏐", heavy: false },
+      { id: "24", title: "Slope", url: "https://cheeset-idk.github.io/Slope/", category: "Forks & Web Games", desc: "High-speed 3D ball runner", emoji: "🟢", heavy: false },
+      { id: "25", title: "Unofficial Melon Playground", url: "https://cheeset-idk.github.io/Melon-playground/", category: "Forks & Web Games", desc: "Physics sandbox playground", emoji: "🍉", heavy: false },
+      { id: "26", title: "Plants vs. Zombies", url: "https://cheeset-idk.github.io/PVZ/", category: "Forks & Web Games", desc: "Defend your lawn against zombies", emoji: "🌻", heavy: false },
+      { id: "27", title: "Snowball.io", url: "https://cheeset-idk.github.io/Snowball.io/", category: "Forks & Web Games", desc: "Roll massive snowballs into rivals", emoji: "☃️", heavy: false },
+      { id: "28", title: "FNAF 4", url: "https://cheeset-idk.github.io/FNAF-4/", category: "Forks & Web Games", desc: "Nightmare animatronics in bedroom", emoji: "🔦", heavy: false },
+      { id: "29", title: "FNAF 2", url: "https://cheeset-idk.github.io/FNAF-2/", category: "Forks & Web Games", desc: "Unsure if loading properly", emoji: "🐰", heavy: false },
+      { id: "30", title: "Boxing Random", url: "https://cheeset-idk.github.io/Boxing-random/", category: "Forks & Web Games", desc: "Random ragdoll boxing rounds", emoji: "🥊", heavy: false },
+      { id: "31", title: "Soccer Random", url: "https://cheeset-idk.github.io/Soccer-random/", category: "Forks & Web Games", desc: "Hilarious 1-button soccer", emoji: "⚽", heavy: false },
+      { id: "32", title: "Extra Drive Games Drive", url: "https://drive.google.com/drive/folders/1QXbjGWMvNc79cps6N5EI9OL1UpLs6_mD?usp=drive_link", category: "Resources", desc: "Extra game stash on Google Drive", emoji: "📁", heavy: false },
+
+      { id: "33", title: "Papa's Pancakeria", url: "https://cheeset-idk.github.io/papas-pancakeria/", category: "Papa's Series", desc: "Serve fluffy pancakes & waffles", emoji: "🥞", heavy: false },
+      { id: "34", title: "Papa's Hotdoggeria", url: "https://cheeset-idk.github.io/papas-hotdoggeria/", category: "Papa's Series", desc: "Grill hot dogs at baseball stadium", emoji: "🌭", heavy: false },
+      { id: "35", title: "Papa's Freezeria", url: "https://cheeset-idk.github.io/papas-freezeria/", category: "Papa's Series", desc: "Blend tropical sundae treats", emoji: "🍨", heavy: false },
+      { id: "36", title: "Papa's Burgeria", url: "https://cheeset-idk.github.io/papas-burgeria/", category: "Papa's Series", desc: "Flip & stack gourmet burgers", emoji: "🍔", heavy: false },
+      { id: "37", title: "Papa's Bakeria", url: "https://cheeset-idk.github.io/papas-bakeria/", category: "Papa's Series", desc: "Bake delicious pies & crusts", emoji: "🥧", heavy: false },
+      { id: "38", title: "Papa's Cheeseria", url: "https://cheeset-idk.github.io/papas-cheeseria/", category: "Papa's Series", desc: "Craft grilled cheese sandwiches", emoji: "🧀", heavy: false },
+      { id: "39", title: "Papa's Cupcakeria", url: "https://cheeset-idk.github.io/papas-cupakeria/", category: "Papa's Series", desc: "Frost & decorate cupcakes", emoji: "🧁", heavy: false },
+
+      { id: "40", title: "Monkey Mart", url: "https://cheeset-idk.github.io/monkey-mart/", category: "Forks & Web Games", desc: "Manage a busy monkey supermarket", emoji: "🐒", heavy: false },
+      { id: "41", title: "Level Devil", url: "https://cheeset-idk.github.io/level-devil/", category: "Forks & Web Games", desc: "Troll platformer full of traps", emoji: "😈", heavy: false },
+      { id: "42", title: "Minecraft 1.8.8", url: "https://cheeset-idk.github.io/minecraft-1.8.8/", category: "Forks & Web Games", desc: "Classic web browser Minecraft port", emoji: "🧊", heavy: false },
+      { id: "43", title: "Backrooms", url: "https://cheeset-idk.github.io/backrooms/", category: "Forks & Web Games", desc: "Click screen to lock mouse pointer!", emoji: "🟨", heavy: false },
+      { id: "44", title: "Awesome Tanks 1", url: "https://cheeset-idk.github.io/awesome-tanks-1/", category: "Forks & Web Games", desc: "Upgrade tank & destroy enemy bases", emoji: "🎛️", heavy: false },
+      { id: "45", title: "Awesome Tanks 2", url: "https://cheeset-idk.github.io/awesome-tanks-2/", category: "Forks & Web Games", desc: "More weapons & tank upgrades", emoji: "💥", heavy: false },
+
+      { id: "46", title: "To The Core", url: "https://slqntdevss.github.io/TTCPort/", category: "Heavy Games", desc: "Drill deep into planetary core", emoji: "🌋", heavy: true },
+      { id: "47", title: "People Playground", url: "https://cheeset-idk.github.io/people-playground-/", category: "Heavy Games", desc: "Physics sandbox (No jsdelivr)", emoji: "🧪", heavy: true },
+      { id: "48", title: "Mindustry", url: "https://cheeset-idk.github.io/Mindustry/", category: "Heavy Games", desc: "Takes a few minutes to load!", emoji: "🏭", heavy: true },
+      { id: "49", title: "FNF (Friday Night Funkin')", url: "https://cheeset-idk.github.io/FNF-HTML-Port/", category: "Heavy Games", desc: "Reload page if loading hangs", emoji: "🎤", heavy: true },
+      { id: "50", title: "Idle Mining Empire", url: "https://ugs-plus.github.io/idle-mining-empire", category: "Heavy Games", desc: "Expand your mining operations", emoji: "💎", heavy: true },
+      { id: "51", title: "Geometry Dash (Full Web)", url: "https://cheeset-idk.github.io/geometry-dash-web-full/", category: "Heavy Games", desc: "VERY old geometry dash port", emoji: "🟨", heavy: true },
+      { id: "52", title: "Celeste Web", url: "https://theveryoilydill.github.io/celeste/", category: "Heavy Games", desc: "Climb the mountain in web port", emoji: "🍓", heavy: true },
+      { id: "53", title: "Terraria Web", url: "https://cheeset-idk.github.io/terraria-/", category: "Heavy Games", desc: "Note: Chromebooks issue currently", emoji: "🌳", heavy: true },
+      { id: "54", title: "Endoparasitic", url: "https://skibidi-math.github.io/endoparasitic/", category: "Heavy Games", desc: "One-armed tactical survival game", emoji: "🦾", heavy: true },
+      { id: "55", title: "Shapez.io (ModZ)", url: "https://law-dawg360.github.io/Shapez/shapez/modZ/", category: "Heavy Games", desc: "Huge factory automation game", emoji: "⚙️", heavy: true },
+      { id: "56", title: "Kittens Game", url: "https://cheeset-idk.github.io/kittens-tycoon/", category: "Heavy Games", desc: "Deep text-based village simulation", emoji: "🐱", heavy: true },
+      { id: "57", title: "Stardew Valley (WASM)", url: "https://cheeset-idk.github.io/stardew-wasm/", category: "Heavy Games", desc: "WebAssembly farming port", emoji: "🌾", heavy: true },
+      { id: "58", title: "Evolve", url: "https://pmotschmann.github.io/Evolve/", category: "Heavy Games", desc: "Civilization incrementer game", emoji: "🧬", heavy: true },
+      { id: "59", title: "OpenTTD Touch", url: "https://pelya.github.io/openttd-touch-webapp", category: "Heavy Games", desc: "USE TUTORIAL! Very complex game!", emoji: "🚂", heavy: true },
+      { id: "60", title: "Super Mario Bros Remastered", url: "https://cheeset-idk.github.io/SMB-Remastered-1.1.0-Webport-T4actica1-/", category: "Heavy Games", desc: "Requires rom.nes file from repo. Z=Action, X=Back, Arrows=Move", emoji: "🍄", heavy: true },
+      { id: "61", title: "Crazy Cattle 3D", url: "https://kkorenn.github.io/cattle3d/", category: "Heavy Games", desc: "Wild 3D cattle physics simulation", emoji: "🐮", heavy: true },
+      { id: "62", title: "Super Mario 64 WebGL", url: "https://vinmannie.github.io/Mario64webgl/", category: "Heavy Games", desc: "Full 3D Mario 64 in browser", emoji: "⭐", heavy: true }
     ];
 
-    let currentCat = "All";
+    // Web Audio API Synthesizer
+    class AudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
 
-    function getBadgeClass(cat, heavy) {
-      if (heavy) return "badge-heavy";
-      if (cat === "Original Projects") return "badge-original";
-      if (cat === "Papa's Series") return "badge-papas";
-      if (cat === "Resources") return "badge-resource";
-      return "badge-fork";
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playHover() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(520, this.ctx.currentTime + 0.04);
+          gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.04);
+        } catch(e){}
+      }
+
+      playClick() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(450, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.06);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.06);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.06);
+        } catch(e){}
+      }
+
+      playChime() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          [523.25, 659.25, 783.99].forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+            gain.gain.setValueAtTime(0.08, now + idx * 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.15);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + idx * 0.05);
+            osc.stop(now + idx * 0.05 + 0.15);
+          });
+        } catch(e){}
+      }
+
+      playTick() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.02);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.02);
+        } catch(e){}
+      }
     }
 
-    function renderGames(list) {
-      const grid = document.getElementById("gameGrid");
-      grid.innerHTML = "";
+    const soundEngine = new AudioEngine();
 
-      if (list.length === 0) {
-        grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 3rem;">No games found matching your search.</p>`;
+    // Firebase Setup
+    let db = null;
+    let auth = null;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'cheeset-game-hub';
+
+    if (typeof __firebase_config !== 'undefined') {
+      try {
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+      } catch (e) {
+        console.warn("Firebase config parse error:", e);
+      }
+    }
+
+    // Application State Variables
+    let communityGames = [];
+    let allGames = [...DEFAULT_GAMES];
+    let favorites = JSON.parse(localStorage.getItem('cheeset_fav_games') || '[]');
+    let currentCategory = "All";
+    let searchQuery = "";
+    let viewMode = "grid"; // "grid" or "list"
+    let spunGameIndex = -1;
+
+    // Categories list
+    const CATEGORIES = [
+      { name: "All", icon: "fa-border-all" },
+      { name: "Original Projects", icon: "fa-wand-magic-sparkles" },
+      { name: "Forks & Web Games", icon: "fa-code-branch" },
+      { name: "Papa's Series", icon: "fa-utensils" },
+      { name: "Heavy Games", icon: "fa-weight-hanging" },
+      { name: "Favorites", icon: "fa-heart" },
+      { name: "Community Added", icon: "fa-users" },
+      { name: "Resources", icon: "fa-folder-open" }
+    ];
+
+    // Initialize App
+    window.addEventListener('DOMContentLoaded', async () => {
+      renderCategoryPills();
+      initFirebaseSync();
+      refreshGameList();
+
+      // Sound activation listener
+      document.body.addEventListener('click', () => soundEngine.init(), { once: true });
+    });
+
+    async function initFirebaseSync() {
+      if (!db || !auth) {
+        document.getElementById('liveSyncStatus').innerHTML = `<span class="text-slate-500"><i class="fa-solid fa-hard-drive"></i> Local Mode</span>`;
         return;
       }
 
-      list.forEach(game => {
-        const badgeClass = getBadgeClass(game.category, game.heavy);
-        const badgeLabel = game.heavy ? "Heavy Load" : game.category;
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (e) {
+        console.warn("Auth token signin error:", e);
+        try { await signInAnonymously(auth); } catch(err){}
+      }
 
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <div>
-            <div class="card-header">
-              <span class="card-title">${game.title}</span>
-              <span class="badge ${badgeClass}">${badgeLabel}</span>
-            </div>
-            <div class="card-desc">${game.desc || "Click below to play or open in a new tab."}</div>
-          </div>
-          <div class="card-actions">
-            ${game.category === 'Resources' ? '' : `<button class="btn btn-primary" onclick="embedGame('${game.url.replace(/'/g, "\\'")}', '${game.title.replace(/'/g, "\\'")}')">Play Here</button>`}
-            <a href="${game.url}" target="_blank" class="btn btn-secondary">${game.category === 'Resources' ? 'Open Drive' : 'New Tab ↗'}</a>
-          </div>
-        `;
-        grid.appendChild(card);
+      // Mandatory Path: /artifacts/{appId}/public/data/games
+      onAuthStateChanged(auth, (user) => {
+        if (!user) return;
+        const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'games');
+        
+        onSnapshot(colRef, (snapshot) => {
+          const items = [];
+          snapshot.forEach(doc => {
+            items.push({ id: doc.id, ...doc.data(), isCommunity: true });
+          });
+          communityGames = items;
+          refreshGameList();
+        }, (error) => {
+          console.error("Firestore sync error:", error);
+        });
       });
     }
 
-    function filterGames() {
-      const query = document.getElementById("search").value.toLowerCase();
-      const filtered = games.filter(g => {
-        const matchesCat = currentCat === "All" || g.category === currentCat;
-        const matchesQuery = g.title.toLowerCase().includes(query) || g.desc.toLowerCase().includes(query);
+    function refreshGameList() {
+      // Combine Default + Community
+      allGames = [...DEFAULT_GAMES];
+      
+      communityGames.forEach(cg => {
+        if (!allGames.some(g => g.url === cg.url)) {
+          allGames.push(cg);
+        }
+      });
+
+      document.getElementById('totalGameCount').innerText = allGames.length;
+      document.getElementById('favGameCount').innerText = favorites.length;
+
+      filterAndRender();
+    }
+
+    function filterAndRender() {
+      const filtered = allGames.filter(game => {
+        // Category Filter
+        let matchesCat = false;
+        if (currentCategory === "All") matchesCat = true;
+        else if (currentCategory === "Favorites") matchesCat = favorites.includes(game.id);
+        else if (currentCategory === "Community Added") matchesCat = game.isCommunity === true;
+        else matchesCat = game.category === currentCategory;
+
+        // Search Filter
+        const query = searchQuery.toLowerCase().trim();
+        const matchesQuery = !query || 
+                             game.title.toLowerCase().includes(query) || 
+                             (game.desc && game.desc.toLowerCase().includes(query)) ||
+                             game.category.toLowerCase().includes(query);
+
         return matchesCat && matchesQuery;
       });
-      renderGames(filtered);
-    }
 
-    function setCategory(cat, btn) {
-      currentCat = cat;
-      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      filterGames();
-    }
+      const gridEl = document.getElementById('gameGrid');
+      const listEl = document.getElementById('gameList');
+      const emptyEl = document.getElementById('emptyState');
 
-    function embedGame(url, title) {
-      document.getElementById("modalGameTitle").innerText = title;
-      document.getElementById("gameIframe").src = url;
-      document.getElementById("modalExternalLink").href = url;
-      document.getElementById("playerModal").style.display = "flex";
-    }
+      gridEl.innerHTML = '';
+      listEl.innerHTML = '';
 
-    function closeGame() {
-      document.getElementById("gameIframe").src = "";
-      document.getElementById("playerModal").style.display = "none";
-    }
+      if (filtered.length === 0) {
+        gridEl.classList.add('hidden');
+        listEl.classList.add('hidden');
+        emptyEl.classList.remove('hidden');
+        return;
+      }
 
-    function reloadIframe() {
-      const iframe = document.getElementById("gameIframe");
-      iframe.src = iframe.src;
-    }
+      emptyEl.classList.add('hidden');
 
-    function toggleFullscreen() {
-      const iframe = document.getElementById("gameIframe");
-      if (iframe.requestFullscreen) {
-        iframe.requestFullscreen();
-      } else if (iframe.webkitRequestFullscreen) {
-        iframe.webkitRequestFullscreen();
+      if (viewMode === 'grid') {
+        gridEl.classList.remove('hidden');
+        listEl.classList.add('hidden');
+        filtered.forEach(game => gridEl.appendChild(createGridCard(game)));
+      } else {
+        gridEl.classList.add('hidden');
+        listEl.classList.remove('hidden');
+        filtered.forEach(game => listEl.appendChild(createListRow(game)));
       }
     }
 
-    // Initial render
-    renderGames(games);
+    function createGridCard(game) {
+      const card = document.createElement('div');
+      const isFav = favorites.includes(game.id);
+      
+      card.className = "spring-card glass-panel rounded-2xl p-5 border border-slate-800 flex flex-col justify-between relative group cursor-pointer overflow-hidden";
+      card.onmouseenter = () => soundEngine.playHover();
+      
+      const categoryBadgeColor = game.heavy ? "bg-red-500/20 text-red-400 border-red-500/30" :
+                                 game.category === "Original Projects" ? "bg-cyan-500/20 text-cyan-400 border-cyan-500/30" :
+                                 game.category === "Papa's Series" ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
+                                 game.category === "Resources" ? "bg-purple-500/20 text-purple-400 border-purple-500/30" :
+                                 "bg-slate-800 text-slate-300 border-slate-700";
+
+      card.innerHTML = `
+        <div>
+          <!-- Header Top Info -->
+          <div class="flex items-start justify-between gap-2 mb-3">
+            <div class="w-12 h-12 rounded-xl bg-slate-900 border border-slate-700/60 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300 shadow-inner">
+              ${game.emoji || '🎮'}
+            </div>
+            
+            <div class="flex items-center gap-1.5">
+              ${game.heavy ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse"><i class="fa-solid fa-triangle-exclamation"></i> Heavy</span>` : ''}
+              ${game.isCommunity ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"><i class="fa-solid fa-users"></i> Live</span>` : ''}
+              
+              <button onclick="toggleFavorite(event, '${game.id}')" class="spring-btn p-1.5 rounded-lg text-slate-500 hover:text-pink-500 transition-colors">
+                <i class="fa-${isFav ? 'solid text-pink-500' : 'regular'} fa-heart text-base"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Title & Category -->
+          <h3 class="font-outfit font-extrabold text-white text-base group-hover:text-cyan-300 transition-colors line-clamp-1 mb-1">
+            ${game.title}
+          </h3>
+          <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md border ${categoryBadgeColor} mb-3">
+            ${game.category}
+          </span>
+
+          <p class="text-xs text-slate-400 line-clamp-2 mb-4 h-8 leading-relaxed">
+            ${game.desc || 'No description provided.'}
+          </p>
+        </div>
+
+        <!-- Card Action Buttons -->
+        <div class="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+          ${game.category === 'Resources' ? '' : `
+            <button onclick="openPlayerModal('${game.url.replace(/'/g, "\\'")}', '${game.title.replace(/'/g, "\\'")}', '${game.emoji || '🎮'}', '${game.category}')" class="spring-btn flex-1 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/30 font-bold py-2 px-3 rounded-xl text-xs text-center flex items-center justify-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-play text-[10px]"></i> Play
+            </button>
+          `}
+          <a href="${game.url}" target="_blank" onclick="event.stopPropagation(); soundEngine.playClick();" class="spring-btn ${game.category === 'Resources' ? 'w-full' : ''} bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2 px-3 rounded-xl text-xs text-center flex items-center justify-center gap-1 border border-slate-700">
+            <span>${game.category === 'Resources' ? 'Open Drive Folder' : 'Tab ↗'}</span>
+          </a>
+        </div>
+      `;
+
+      return card;
+    }
+
+    function createListRow(game) {
+      const row = document.createElement('div');
+      const isFav = favorites.includes(game.id);
+      row.className = "spring-card glass-panel rounded-2xl p-4 border border-slate-800 flex items-center justify-between gap-4 group cursor-pointer";
+      row.onmouseenter = () => soundEngine.playHover();
+
+      row.innerHTML = `
+        <div class="flex items-center gap-4 min-w-0">
+          <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/60 flex items-center justify-center text-xl shrink-0">
+            ${game.emoji || '🎮'}
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h3 class="font-outfit font-bold text-white text-sm group-hover:text-cyan-300 truncate">${game.title}</h3>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700">${game.category}</span>
+            </div>
+            <p class="text-xs text-slate-400 truncate">${game.desc || 'No description provided.'}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <button onclick="toggleFavorite(event, '${game.id}')" class="spring-btn p-2 rounded-lg text-slate-500 hover:text-pink-500">
+            <i class="fa-${isFav ? 'solid text-pink-500' : 'regular'} fa-heart text-sm"></i>
+          </button>
+          ${game.category === 'Resources' ? '' : `
+            <button onclick="openPlayerModal('${game.url.replace(/'/g, "\\'")}', '${game.title.replace(/'/g, "\\'")}', '${game.emoji || '🎮'}', '${game.category}')" class="spring-btn bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1">
+              <i class="fa-solid fa-play text-[10px]"></i> Play
+            </button>
+          `}
+          <a href="${game.url}" target="_blank" onclick="event.stopPropagation(); soundEngine.playClick();" class="spring-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-3 py-1.5 rounded-xl text-xs border border-slate-700">
+            ↗
+          </a>
+        </div>
+      `;
+
+      return row;
+    }
+
+    function renderCategoryPills() {
+      const container = document.getElementById('categoryPillContainer');
+      container.innerHTML = '';
+
+      CATEGORIES.forEach(cat => {
+        const isActive = currentCategory === cat.name;
+        const btn = document.createElement('button');
+        btn.onclick = () => selectCategory(cat.name);
+        btn.onmouseenter = () => soundEngine.playHover();
+        
+        btn.className = `spring-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2 transition-all ${
+          isActive 
+            ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-slate-950 shadow-lg shadow-cyan-500/20' 
+            : 'bg-slate-950/80 text-slate-400 hover:text-white border border-slate-800/80 hover:border-slate-700'
+        }`;
+
+        btn.innerHTML = `<i class="fa-solid ${cat.icon}"></i> ${cat.name}`;
+        container.appendChild(btn);
+      });
+    }
+
+    // Helper & Interaction Functions
+    window.selectCategory = function(catName) {
+      soundEngine.playClick();
+      currentCategory = catName;
+      renderCategoryPills();
+      filterAndRender();
+    };
+
+    window.handleSearch = function() {
+      searchQuery = document.getElementById('searchInput').value;
+      document.getElementById('clearSearchBtn').classList.toggle('hidden', !searchQuery);
+      filterAndRender();
+    };
+
+    window.clearSearch = function() {
+      soundEngine.playClick();
+      document.getElementById('searchInput').value = '';
+      searchQuery = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      filterAndRender();
+    };
+
+    window.resetFilters = function() {
+      soundEngine.playChime();
+      currentCategory = "All";
+      clearSearch();
+      renderCategoryPills();
+    };
+
+    window.setViewMode = function(mode) {
+      soundEngine.playClick();
+      viewMode = mode;
+      document.getElementById('viewGridBtn').className = `spring-btn px-3 py-1.5 rounded-lg text-xs font-bold ${mode === 'grid' ? 'text-cyan-400 bg-slate-800 shadow-sm' : 'text-slate-400 hover:text-white'}`;
+      document.getElementById('viewListBtn').className = `spring-btn px-3 py-1.5 rounded-lg text-xs font-bold ${mode === 'list' ? 'text-cyan-400 bg-slate-800 shadow-sm' : 'text-slate-400 hover:text-white'}`;
+      filterAndRender();
+    };
+
+    window.toggleFavorite = function(e, gameId) {
+      e.stopPropagation();
+      soundEngine.playChime();
+      
+      if (favorites.includes(gameId)) {
+        favorites = favorites.filter(id => id !== gameId);
+      } else {
+        favorites.push(gameId);
+      }
+      
+      localStorage.setItem('cheeset_fav_games', JSON.stringify(favorites));
+      refreshGameList();
+    };
+
+    window.toggleAudio = function() {
+      soundEngine.muted = !soundEngine.muted;
+      const icon = document.getElementById('soundIcon');
+      icon.className = soundEngine.muted ? "fa-solid fa-volume-xmark text-slate-500" : "fa-solid fa-volume-high text-cyan-400";
+      if (!soundEngine.muted) soundEngine.playChime();
+    };
+
+    // Modal 1: Game Player
+    window.openPlayerModal = function(url, title, emoji, category) {
+      soundEngine.playChime();
+      document.getElementById('playerTitle').innerText = title;
+      document.getElementById('playerEmoji').innerText = emoji || '🎮';
+      document.getElementById('playerBadge').innerText = category || 'Web Game';
+      document.getElementById('playerExternalLink').href = url;
+      
+      const loader = document.getElementById('iframeLoader');
+      const iframe = document.getElementById('gameIframe');
+      
+      loader.classList.remove('hidden');
+      iframe.src = url;
+      iframe.onload = () => loader.classList.add('hidden');
+
+      document.getElementById('playerModal').classList.remove('hidden');
+      document.getElementById('playerModal').classList.add('flex');
+    };
+
+    window.closePlayerModal = function() {
+      soundEngine.playClick();
+      const iframe = document.getElementById('gameIframe');
+      iframe.src = '';
+      document.getElementById('playerModal').classList.add('hidden');
+      document.getElementById('playerModal').classList.remove('flex');
+    };
+
+    window.reloadGameFrame = function() {
+      soundEngine.playClick();
+      const iframe = document.getElementById('gameIframe');
+      const currentSrc = iframe.src;
+      iframe.src = '';
+      document.getElementById('iframeLoader').classList.remove('hidden');
+      setTimeout(() => {
+        iframe.src = currentSrc;
+      }, 100);
+    };
+
+    window.requestIframeFullscreen = async function() {
+      soundEngine.playClick();
+      const iframe = document.getElementById('gameIframe');
+      const container = document.getElementById('playerContainer');
+      
+      try {
+        if (iframe.requestFullscreen) {
+          await iframe.requestFullscreen();
+        } else if (iframe.webkitRequestFullscreen) {
+          await iframe.webkitRequestFullscreen();
+        } else if (container.requestFullscreen) {
+          await container.requestFullscreen();
+        }
+      } catch (err) {
+        console.warn("Fullscreen permission policy restricted:", err);
+        toggleTheatreMode(true);
+        showToast("Iframe fullscreen restricted by host policy — switched to Theatre Mode!");
+      }
+    };
+
+    window.toggleTheatreMode = function(forceEnable = null) {
+      soundEngine.playClick();
+      const container = document.getElementById('playerContainer');
+      const icon = document.getElementById('theatreIcon');
+      
+      const shouldEnable = forceEnable !== null ? forceEnable : !container.classList.contains('max-w-[98vw]');
+      
+      if (shouldEnable) {
+        container.classList.remove('max-w-6xl', 'h-[92vh]');
+        container.classList.add('max-w-[98vw]', 'h-[98vh]');
+        icon.className = 'fa-solid fa-compress text-purple-400';
+      } else {
+        container.classList.remove('max-w-[98vw]', 'h-[98vh]');
+        container.classList.add('max-w-6xl', 'h-[92vh]');
+        icon.className = 'fa-solid fa-expand text-purple-400';
+      }
+    };
+
+    function showToast(message) {
+      let toast = document.getElementById('hubToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'hubToast';
+        toast.className = 'fixed bottom-6 right-6 z-[100] glass-panel border border-cyan-500/40 text-cyan-300 px-4 py-3 rounded-2xl shadow-2xl text-xs font-bold transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none flex items-center gap-2.5 backdrop-blur-md';
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = `<i class="fa-solid fa-circle-info text-cyan-400 text-sm"></i> <span>${message}</span>`;
+      toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
+      }, 3500);
+    }
+
+    // Modal 2: Roulette Spinner
+    window.openSpinModal = function() {
+      soundEngine.playClick();
+      document.getElementById('spinModal').classList.remove('hidden');
+      document.getElementById('spinModal').classList.add('flex');
+      document.getElementById('playSpunBtn').classList.add('hidden');
+      document.getElementById('spinBtn').classList.remove('hidden');
+      document.getElementById('spinTitle').innerText = "Ready to Spin?";
+      document.getElementById('spinEmoji').innerText = "🎲";
+      document.getElementById('spinCategory').innerText = "Press the button below";
+    };
+
+    window.closeSpinModal = function() {
+      soundEngine.playClick();
+      document.getElementById('spinModal').classList.add('hidden');
+      document.getElementById('spinModal').classList.remove('flex');
+    };
+
+    window.startRouletteSpin = function() {
+      soundEngine.playClick();
+      const reel = document.getElementById('reelBox');
+      const spinBtn = document.getElementById('spinBtn');
+      spinBtn.disabled = true;
+      reel.classList.add('spinning-active');
+
+      let counter = 0;
+      const totalSpins = 25;
+      const playableGames = allGames.filter(g => g.category !== 'Resources');
+
+      const interval = setInterval(() => {
+        soundEngine.playTick();
+        const randIdx = Math.floor(Math.random() * playableGames.length);
+        const g = playableGames[randIdx];
+        
+        document.getElementById('spinEmoji').innerText = g.emoji || '🎮';
+        document.getElementById('spinTitle').innerText = g.title;
+        document.getElementById('spinCategory').innerText = g.category;
+        
+        counter++;
+        if (counter >= totalSpins) {
+          clearInterval(interval);
+          reel.classList.remove('spinning-active');
+          soundEngine.playChime();
+          spunGameIndex = allGames.indexOf(g);
+          
+          spinBtn.classList.add('hidden');
+          spinBtn.disabled = false;
+          document.getElementById('playSpunBtn').classList.remove('hidden');
+          document.getElementById('playSpunBtn').classList.add('flex');
+        }
+      }, 80);
+    };
+
+    window.launchSpunGame = function() {
+      if (spunGameIndex >= 0 && spunGameIndex < allGames.length) {
+        const game = allGames[spunGameIndex];
+        closeSpinModal();
+        openPlayerModal(game.url, game.title, game.emoji, game.category);
+      }
+    };
+
+    // Modal 3: Add Game Form
+    window.openAddModal = function() {
+      soundEngine.playClick();
+      document.getElementById('addModal').classList.remove('hidden');
+      document.getElementById('addModal').classList.add('flex');
+    };
+
+    window.closeAddModal = function() {
+      soundEngine.playClick();
+      document.getElementById('addModal').classList.add('hidden');
+      document.getElementById('addModal').classList.remove('flex');
+    };
+
+    window.handleAddGameSubmit = async function(e) {
+      e.preventDefault();
+      soundEngine.playChime();
+
+      const newGame = {
+        title: document.getElementById('addTitle').value.trim(),
+        url: document.getElementById('addUrl').value.trim(),
+        category: document.getElementById('addCategory').value,
+        desc: document.getElementById('addDesc').value.trim(),
+        emoji: document.getElementById('addEmoji').value.trim() || '🎮',
+        heavy: document.getElementById('addHeavy').checked,
+        createdAt: new Date().toISOString()
+      };
+
+      if (db && auth && auth.currentUser) {
+        try {
+          // Rule 1 mandatory path: artifacts/{appId}/public/data/games
+          const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'games');
+          await addDoc(colRef, newGame);
+        } catch (err) {
+          console.error("Firestore add doc error:", err);
+        }
+      } else {
+        // Fallback to local memory session
+        communityGames.push({ id: 'local_' + Date.now(), ...newGame, isCommunity: true });
+        refreshGameList();
+      }
+
+      document.getElementById('addGameForm').reset();
+      closeAddModal();
+    };
+
+    // Modal 4: Export Helper
+    window.openExportModal = function() {
+      soundEngine.playClick();
+      const codeArea = document.getElementById('exportCodeArea');
+      
+      // Generate clean array string
+      const exportList = allGames.map(g => ({
+        title: g.title,
+        url: g.url,
+        category: g.category,
+        desc: g.desc,
+        emoji: g.emoji || '🎮',
+        heavy: g.heavy || false
+      }));
+
+      codeArea.value = `const games = ${JSON.stringify(exportList, null, 2)};`;
+
+      document.getElementById('exportModal').classList.remove('hidden');
+      document.getElementById('exportModal').classList.add('flex');
+    };
+
+    window.closeExportModal = function() {
+      soundEngine.playClick();
+      document.getElementById('exportModal').classList.add('hidden');
+      document.getElementById('exportModal').classList.remove('flex');
+    };
+
+    window.copyExportCode = function() {
+      soundEngine.playChime();
+      const codeArea = document.getElementById('exportCodeArea');
+      codeArea.select();
+      
+      try {
+        document.execCommand('copy');
+      } catch (err) {
+        navigator.clipboard.writeText(codeArea.value);
+      }
+
+      const msg = document.getElementById('exportCopyMsg');
+      msg.classList.remove('opacity-0');
+      setTimeout(() => msg.classList.add('opacity-0'), 2500);
+    };
   </script>
 </body>
 </html>
